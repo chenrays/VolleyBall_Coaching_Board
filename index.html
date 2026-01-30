@@ -15,7 +15,7 @@
             --team-b-base: #FFB6C1;
             --libero-color: #f1c40f; 
             --text-color: #eee;
-            --sidebar-width: 100px; /* 稍微加寬一點點以容納板凳排列 */
+            --sidebar-width: 100px; 
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -34,44 +34,56 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            justify-content: center; /* 讓內容垂直居中 */
-            align-items: stretch;
             border-right: 1px solid #333;
             z-index: 50;
-            padding: 0 4px; /* 減少左右內距 */
-            overflow-y: auto; /* 預防小螢幕爆版 */
+            padding: 20px 4px; /* 上下增加留白 */
+            overflow: hidden; /* 禁止整個側邊欄捲動 */
         }
 
-        /* 內容容器：限制高度不超過場地太多 */
+        /* 內容容器：佔滿高度 */
         .sidebar-content {
             display: flex;
             flex-direction: column;
-            gap: 0;
             width: 100%;
-            max-height: 98vh; /* 確保不切到 */
+            height: 100%;
         }
 
-        /* 分區樣式 */
+        /* 分區樣式：關鍵修改 */
+        /* 使用 flex: 1 強制上下各佔 50% */
+        .zone-b, .zone-a {
+            flex: 1; 
+            display: flex; 
+            flex-direction: column;
+            min-height: 0; /* 讓內部捲動生效的關鍵 */
+            gap: 5px;
+        }
+
+        /* B隊 (上半部)：內容靠下對齊 */
         .zone-b {
-            display: flex; flex-direction: column; 
-            gap: 6px; padding-bottom: 5px;
+            justify-content: flex-end; 
+            padding-bottom: 8px;
             border-bottom: 2px dashed #444;
         }
+
+        /* A隊 (下半部)：內容靠上對齊 */
         .zone-a {
-            display: flex; flex-direction: column; 
-            gap: 6px; padding-top: 5px;
+            justify-content: flex-start;
+            padding-top: 8px;
         }
 
-        /* 1. Header (最靠近中間) */
+        /* Header */
         .team-header {
             font-size: 13px; font-weight: 900; text-align: center;
-            padding: 4px 0; letter-spacing: 1px;
+            padding: 4px 0; letter-spacing: 1px; flex-shrink: 0; /* 禁止壓縮 */
         }
         .header-b { color: var(--team-b-base); border-bottom: 2px solid var(--team-b-base); }
         .header-a { color: var(--team-a-base); border-top: 2px solid var(--team-a-base); }
 
-        /* 2. 輪轉控制 (往外一層) */
-        .rot-group { display: flex; gap: 2px; height: 28px; }
+        /* 輪轉控制 */
+        .rot-group { 
+            display: flex; gap: 2px; height: 28px; 
+            flex-shrink: 0; /* 禁止壓縮 */
+        }
         .rot-btn {
             flex: 1; border: 1px solid #444; background: #333; color: #ccc;
             border-radius: 4px; font-size: 10px; cursor: pointer;
@@ -79,31 +91,42 @@
         }
         .rot-btn:active { background: #555; }
 
-        /* 3. 自由換人 (再往外一層，1/3大小) */
+        /* 自由換人 */
         .libero-zone {
             display: flex; flex-direction: column; gap: 2px;
+            flex-shrink: 0; /* 禁止壓縮 */
         }
         .swap-btn {
             background: #d35400; color: white; border: none; 
-            padding: 0; height: 20px; /* 壓扁高度 */
+            padding: 0; height: 20px; 
             border-radius: 3px; cursor: pointer; font-size: 9px; 
             text-align: center; line-height: 20px;
         }
 
-        /* 4. 板凳區 (最外層) */
+        /* 板凳區：唯一可以壓縮和捲動的區域 */
         .bench-box {
             background: #111; border: 1px solid #333; border-radius: 4px;
             padding: 4px; 
-            min-height: 80px; /* 給予一定高度 */
             display: flex; 
-            flex-wrap: wrap; /* 讓球員換行排列 */
+            flex-wrap: wrap; 
             justify-content: center;
-            align-content: flex-start;
+            align-content: flex-start; /* 讓內容靠上 */
             gap: 4px;
+            
+            flex-shrink: 1; /* 空間不夠時縮小 */
+            overflow-y: auto; /* 內容太多時捲動 */
+            min-height: 60px; /* 至少保留一點高度 */
+            
+            /* 隱藏捲軸但保留功能 */
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
         }
+        .bench-box::-webkit-scrollbar { display: none; }
+
         .add-btn {
             width: 100%; height: 24px; background: #222; border: 1px dashed #555; 
             color: #888; font-size: 10px; margin-top: 4px; cursor: pointer;
+            flex-shrink: 0;
         }
 
         /* --- 右側球場 --- */
@@ -158,14 +181,14 @@
 
         /* --- 球員實體 --- */
         .entity {
-            position: absolute; width: 34px; height: 34px; /* 稍微縮小以利排列 */
+            position: absolute; width: 34px; height: 34px; 
             border-radius: 50%; display: flex; justify-content: center; align-items: center;
             font-weight: 800; font-size: 14px; color: #222;
             box-shadow: 0 2px 4px rgba(0,0,0,0.6);
             cursor: grab; z-index: 20; border: 2px solid white;
             transition: transform 0.1s;
         }
-        /* 板凳中的球員樣式調整：relative positioning 由 JS 控制，這裡只需確保大小 */
+        /* 板凳中的球員 */
         .bench-box .entity {
             position: relative !important; 
             left: auto !important; top: auto !important;
@@ -286,7 +309,7 @@
     </div>
 
     <script>
-        // --- UI & Scaling Logic ---
+        // --- Scaling Logic ---
         const courtContainer = document.getElementById('court-container');
         const courtScaler = document.getElementById('court-scaler');
         const mainStage = document.querySelector('.main-stage');
@@ -295,7 +318,9 @@
         function resizeCourt() {
             const availableWidth = mainStage.clientWidth;
             const availableHeight = mainStage.clientHeight;
-            const courtW = 360; const courtH = 680; const padding = 10;
+            const courtW = 360; const courtH = 680; 
+            // 增加 padding 讓球場不要太貼邊
+            const padding = 40; 
             const scaleX = (availableWidth - padding) / courtW;
             const scaleY = (availableHeight - padding) / courtH;
             currentScale = Math.min(scaleX, scaleY);
@@ -391,7 +416,6 @@
 
             if (zone === 'bench') {
                 const targetBench = (team === 'B' || team === 'L_B') ? benchB : benchA;
-                // B隊順序：球員在按鈕前，A隊順序：球員在按鈕前 (因為Flex wrap，我們統一用 insertBefore)
                 targetBench.insertBefore(div, targetBench.querySelector('.add-btn'));
             } else {
                 div.style.left = (x - 17) + 'px'; div.style.top = (y - 17) + 'px';
